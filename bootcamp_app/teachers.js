@@ -7,19 +7,22 @@ const pool = new Pool ({
   database: "bootcampx",
 });
 
-pool
-  .query(
-    `
+const queryString = `
     SELECT teachers.name AS teacher, cohorts.name AS cohort, COUNT(assistance_requests.teacher_id) AS total_assistances
     FROM assistance_requests
     JOIN students ON students.id = student_id
     JOIN teachers ON teachers.id = teacher_id
     JOIN cohorts ON cohorts.id = students.cohort_id
-    WHERE cohorts.name = '${process.argv[2]}'
+    WHERE cohorts.name LIKE $1
     GROUP BY teachers.name, cohorts.name
     ORDER BY teachers.name;
-    `
-  )
+`;
+
+const cohortName = process.argv[2];
+const values = [`%${cohortName}`];
+
+pool
+  .query(queryString, values)
   .then((res) => {
     res.rows.forEach((user) => {
       console.log(
